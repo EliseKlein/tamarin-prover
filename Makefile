@@ -106,8 +106,6 @@ case-studies/%_analyzed.spthy:	examples/%.spthy $(TAMARIN)
 	mkdir -p case-studies/related_work/TPM_DKRS_CSF11
 	mkdir -p case-studies/post17
 	mkdir -p case-studies/regression/trace
-	mkdir -p case-studies/features/xor
-	mkdir -p case-studies/features/xor/basicfunctionality
 	# Use -N3, as the fourth core is used by the OS and the console
 	$(TAMARIN) $< --prove --stop-on-trace=dfs +RTS -N3 -RTS -o$<.tmp >$<.out
 	# We only produce the target after the run, otherwise aborted
@@ -128,7 +126,6 @@ case-studies/%_analyzed-diff.spthy:	examples/%.spthy $(TAMARIN)
 	mkdir -p case-studies/features/equivalence
 	mkdir -p case-studies/post17
 	mkdir -p case-studies/regression/diff
-	mkdir -p case-studies/features/xor/diff-models
 	# Use -N3, as the fourth core is used by the OS and the console
 	# For execution on server using -N14 for faster completion!
 	$(TAMARIN) $< --prove --diff --stop-on-trace=dfs +RTS -N14 -RTS -o$<.tmp >$<.out
@@ -145,7 +142,6 @@ case-studies/%_analyzed-diff-noprove.spthy:	examples/%.spthy $(TAMARIN)
 	mkdir -p case-studies/ccs15
 	mkdir -p case-studies/features/equivalence
 	mkdir -p case-studies/regression/diff
-	mkdir -p case-studies/features/xor/diff-models
 	# Use -N3, as the fourth core is used by the OS and the console
 	$(TAMARIN) $< --diff --stop-on-trace=dfs +RTS -N3 -RTS -o$<.tmp >$<.out
 	# We only produce the target after the run, otherwise aborted
@@ -199,33 +195,6 @@ POST17_TARGETS= $(POST17_TRACE_TARGETS)  $(POST17_DIFF_TARGETS)
 # POST17 case studies
 post17-case-studies:	$(POST17_TARGETS)
 	grep "verified\|falsified\|processing time" case-studies/post17/*.spthy
-
-## XOR-using case studies
-#########################
-
-XOR_TRACE_CASE_STUDIES= NSLPK3xor.spthy CRxor.spthy CH07.spthy KCL07.spthy LAK06.spthy
-XOR_TRACE_TARGETS=$(subst .spthy,_analyzed.spthy,$(addprefix case-studies/features/xor/,$(XOR_TRACE_CASE_STUDIES)))
-
-XOR_BASIC_TRACE_CASE_STUDIES= xor0.spthy xor1.spthy xor2.spthy xor3.spthy xor4.spthy xor-basic.spthy
-XOR_BASIC_TRACE_TARGETS=$(subst .spthy,_analyzed.spthy,$(addprefix case-studies/features/xor/basicfunctionality/,$(XOR_BASIC_TRACE_CASE_STUDIES)))
-
-XOR_DIFF_CASE_STUDIES= CH07-untrac-weak.spthy 
-# CH07-untrac.spthy LAK06_UK-weak.spthy LAK06_UK.spthy
-XOR_DIFF_TARGETS=$(subst .spthy,_analyzed-diff.spthy,$(addprefix case-studies/features/xor/diff-models/,$(XOR_DIFF_CASE_STUDIES)))
-
-# XOR case studies
-xor-trace-case-studies:	$(XOR_BASIC_TRACE_TARGETS) $(XOR_TRACE_TARGETS)
-	grep "verified\|falsified\|processing time" case-studies/features/xor/*.spthy
-
-xor-diff-case-studies:	$(XOR_DIFF_TARGETS)
-	grep "verified\|falsified\|processing time" case-studies/features/xor/diff-models/*.spthy
-
-XOR_TARGETS=$(XOR_BASIC_TRACE_TARGETS) $(XOR_TRACE_TARGETS) $(XOR_DIFF_TARGETS)
-
-xor-full-case-studies: $(XOR_TARGETS)
-	grep "verified\|falsified\|processing time" case-studies/features/xor/*.spthy
-
-# XOR is for now NOT YET part of the overall set of case-studies
 
 ## Inductive Strengthening
 ##########################
