@@ -438,12 +438,25 @@ rankGoals ctxt ranking = case ranking of
 rankProofMethods :: GoalRanking -> ProofContext -> System
                  -> [(ProofMethod, (M.Map CaseName System, String))]
 rankProofMethods ranking ctxt sys = do
+    -- traceM ("Liste non triée : " ++ show (openGoals sys))
+    -- traceM("Proofcontext : " ++ show ctxt ++ "System : " ++ show sys)
+    traceM (   show (L.get pcSignature ctxt)            ++ 
+            "," ++ show (L.get pcRules ctxt)            ++ 
+            "," ++ show (L.get pcUseInduction ctxt)     ++ 
+            "," ++ show (L.get pcTraceQuantifier ctxt)  ++ 
+            "," ++ show (L.get sEdges sys)              ++ 
+            "," ++ show (L.get sLessAtoms sys)          ++ 
+            "," ++ show (L.get sLemmas sys)             ++ 
+            "," ++ show (L.get sGoals sys)              ++ 
+            "," ++ show (openGoals sys)                 ++ 
+            "," ++ show (rankGoals ctxt ranking sys $ openGoals sys))
     (m, expl) <-
             (contradiction <$> contradictions ctxt sys)
         <|> (case L.get pcUseInduction ctxt of
                AvoidInduction -> [(Simplify, ""), (Induction, "")]
                UseInduction   -> [(Induction, ""), (Simplify, "")]
             )
+        -- <|> (solveGoalMethod <$> trace ("Liste triée : " ++ show (rankGoals ctxt ranking sys $ openGoals sys)) (rankGoals ctxt ranking sys $ openGoals sys))
         <|> (solveGoalMethod <$> (rankGoals ctxt ranking sys $ openGoals sys))
     case execProofMethod ctxt m sys of
       Just cases -> return (m, (cases, expl))

@@ -26,3 +26,9 @@ writeFileWithDirs file output = do
     createDirectoryIfMissing True (takeDirectory file)
     writeFile file output
 
+-- | Write a file and ensure that its containing directory exists.
+appendFileWithDirs :: FilePath -> String -> IO ()
+appendFileWithDirs file output = do
+    createDirectoryIfMissing True (takeDirectory file)
+    appendFile file output
+
