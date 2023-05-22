@@ -20,10 +20,11 @@ import           Theory
 
 import           Theory.Tools.IntruderRules
 
+import           System.FileInterract
+
 import           Main.Console
 import           Main.Environment
 import           Main.TheoryLoader               (dhIntruderVariantsFile,bpIntruderVariantsFile)
-import           Main.Utils
 
 
 intruderMode :: TamarinMode

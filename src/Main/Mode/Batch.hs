@@ -29,12 +29,12 @@ import qualified Export
 import           Main.Console
 import           Main.Environment
 import           Main.TheoryLoader
-import           Main.Utils
 
 import           Theory.Module
 import           Control.Monad.Except (MonadIO(liftIO), runExceptT)
 import           System.Exit (die)
-import Theory.Tools.Wellformedness (prettyWfErrorReport)
+import           System.FileInterract
+import           Theory.Tools.Wellformedness (prettyWfErrorReport)
 
 
 -- | Batch processing mode.

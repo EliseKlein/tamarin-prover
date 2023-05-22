@@ -170,7 +170,6 @@ executable tamarin-prover
       Main.Console
       Main.Environment
       Main.TheoryLoader
-      Main.Utils
       Main.Mode.Batch
       Main.Mode.Interactive
       Main.Mode.Intruder

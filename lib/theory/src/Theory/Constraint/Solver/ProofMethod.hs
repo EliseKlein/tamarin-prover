@@ -62,8 +62,11 @@ import           Theory.Constraint.Solver.Reduction
 import           Theory.Constraint.Solver.Simplify
 import           Theory.Constraint.Solver.Heuristics
 import           Theory.Constraint.System
+import           Theory.Constraint.Data
 import           Theory.Model
 import           Theory.Text.Pretty
+
+import           System.FileInterract
 
 
 ------------------------------------------------------------------------------
@@ -431,6 +434,21 @@ rankGoals ctxt ranking = case ranking of
     SmartDiffRanking -> smartDiffRanking ctxt
     InjRanking useLoopBreakers -> injRanking ctxt useLoopBreakers
 
+chosenGoal :: GoalRanking -> ProofContext -> System -> Maybe AnnotatedGoal
+chosenGoal ranking ctxt sys = case rankGoals ctxt ranking sys $ openGoals sys of
+  []  -> Nothing
+  _   -> Just (head $ rankGoals ctxt ranking sys $ openGoals sys)
+
+generateDataSample :: GoalRanking -> ProofContext -> System -> DataSample
+generateDataSample ranking ctxt sys =  DataSample
+    typegoal age use induction trace
+    where
+      (typegoal, (age, use)) = case chosenGoal ranking ctxt sys of
+        Nothing -> (Nothing, (0, Nothing))
+        Just (t, (a, u)) -> (Just t, (a, Just u))
+      induction = (L.get pcUseInduction ctxt)
+      trace = (L.get pcTraceQuantifier ctxt)
+
 -- | Use a 'GoalRanking' to generate the ranked, list of possible
 -- 'ProofMethod's and their corresponding results in this 'ProofContext' and
 -- for this 'System'. If the resulting list is empty, then the constraint
@@ -438,26 +456,14 @@ rankGoals ctxt ranking = case ranking of
 rankProofMethods :: GoalRanking -> ProofContext -> System
                  -> [(ProofMethod, (M.Map CaseName System, String))]
 rankProofMethods ranking ctxt sys = do
-    -- traceM ("Liste non triée : " ++ show (openGoals sys))
-    -- traceM("Proofcontext : " ++ show ctxt ++ "System : " ++ show sys)
-    traceM (   show (L.get pcSignature ctxt)            ++ 
-            "," ++ show (L.get pcRules ctxt)            ++ 
-            "," ++ show (L.get pcUseInduction ctxt)     ++ 
-            "," ++ show (L.get pcTraceQuantifier ctxt)  ++ 
-            "," ++ show (L.get sEdges sys)              ++ 
-            "," ++ show (L.get sLessAtoms sys)          ++ 
-            "," ++ show (L.get sLemmas sys)             ++ 
-            "," ++ show (L.get sGoals sys)              ++ 
-            "," ++ show (openGoals sys)                 ++ 
-            "," ++ show (rankGoals ctxt ranking sys $ openGoals sys))
+    -- appendFileWithDirsM "./csv/data_test.csv" (prettyPrintDataSample $ generateDataSample ranking ctxt sys)
     (m, expl) <-
             (contradiction <$> contradictions ctxt sys)
         <|> (case L.get pcUseInduction ctxt of
                AvoidInduction -> [(Simplify, ""), (Induction, "")]
                UseInduction   -> [(Induction, ""), (Simplify, "")]
             )
-        -- <|> (solveGoalMethod <$> trace ("Liste triée : " ++ show (rankGoals ctxt ranking sys $ openGoals sys)) (rankGoals ctxt ranking sys $ openGoals sys))
-        <|> (solveGoalMethod <$> (rankGoals ctxt ranking sys $ openGoals sys))
+        <|> appendFileWithDirs "./csv/data_test.csv" (prettyPrintDataSample $ generateDataSample ranking ctxt sys) (solveGoalMethod <$> (rankGoals ctxt ranking sys $ openGoals sys))
     case execProofMethod ctxt m sys of
       Just cases -> return (m, (cases, expl))
       Nothing    -> []

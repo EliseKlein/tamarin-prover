@@ -86,6 +86,8 @@ library
       Theory.Constraint.System.Dot
       Theory.Constraint.System.JSON
       Theory.Constraint.System.Guarded
+      
+      Theory.Constraint.Data
 
       Theory.Sapic.Term
       Theory.Sapic.Pattern
