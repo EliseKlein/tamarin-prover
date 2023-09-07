@@ -242,16 +242,16 @@ execProofMethod ctxt method sys =
       case method of
         Sorry _                  -> return M.empty
         Solved
-          | null (plainOpenGoals sys) -> return M.empty
-          | otherwise                 -> Nothing 
+          | null (plainOpenGoals sys) -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ "\n") (return M.empty)
+          | otherwise                 -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ "\n") Nothing 
         SolveGoal goal
           | goal `M.member` L.get sGoals sys -> execSolveGoal goal
           | otherwise                        -> Nothing
         Simplify                 -> singleCase simplifySystem
         Induction                -> M.map cleanupSystem <$> execInduction
         Contradiction _
-          | null (contradictions ctxt sys) -> Nothing
-          | otherwise                      -> Just M.empty
+          | null (contradictions ctxt sys) -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ "\n") Nothing
+          | otherwise                      -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ "\n") (Just M.empty)
   where
     -- at this point it is safe to remove the free substitution, as all
     -- systems have it fully applied (by the virtue of a call to
@@ -444,7 +444,7 @@ generateDataSample ranking ctxt sys =  DataSample
     typegoal age use induction trace
     where
       (typegoal, (age, use)) = case chosenGoal ranking ctxt sys of
-        Nothing -> (Nothing, (0, Nothing))
+        Nothing -> (Nothing, (-1, Nothing))
         Just (t, (a, u)) -> (Just t, (a, Just u))
       induction = (L.get pcUseInduction ctxt)
       trace = (L.get pcTraceQuantifier ctxt)
@@ -463,7 +463,7 @@ rankProofMethods ranking ctxt sys = do
                AvoidInduction -> [(Simplify, ""), (Induction, "")]
                UseInduction   -> [(Induction, ""), (Simplify, "")]
             )
-        <|> appendFileWithDirs "./csv/data_test.csv" (prettyPrintDataSample $ generateDataSample ranking ctxt sys) (solveGoalMethod <$> (rankGoals ctxt ranking sys $ openGoals sys))
+        <|> appendFileWithDirs "./csv/data_test.csv" (prettyPrintDataSample sys $ generateDataSample ranking ctxt sys) (solveGoalMethod <$> (rankGoals ctxt ranking sys $ openGoals sys))
     case execProofMethod ctxt m sys of
       Just cases -> return (m, (cases, expl))
       Nothing    -> []

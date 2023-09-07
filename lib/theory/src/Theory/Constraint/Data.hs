@@ -23,7 +23,8 @@ module Theory.Constraint.Data (
 
 import           Prelude                              hiding (id, (.))
 
-import           Data.Label                           (mkLabels)
+import           Data.Label                           hiding (get, mkLabels)
+import qualified Data.Label                           as L
 
 import           Theory.Constraint.System.Constraints
 import           Theory.Constraint.Solver.Goals
@@ -32,6 +33,8 @@ import           Theory.Constraint.System
 import           Theory.Model.Fact
 
 import           Term.LTerm
+
+import           Logic.Connectives
 
 -- Structure for csv
 
@@ -44,14 +47,26 @@ data DataSample = DataSample
     }
     deriving( Eq, Ord, Show )
 
-$(mkLabels [''DataSample])
+$(L.mkLabels [''DataSample])
 
--- Csv format : Age;Usefulness;UseInduction;TraceQuantifier;TypeGoal;TypeFact||NbSplit;TypeTerm ++NbOccurrenceLigne;Label add by the python script
-prettyPrintDataSample :: DataSample -> String
-prettyPrintDataSample (DataSample goal age use induction trace) = show age ++ ";" ++ show use ++ ";" ++ show induction ++ ";" ++ show trace ++ ";" ++ case goal of
-    Just (ActionG _ (Fact tag _ term))   -> "Action" ++ ";" ++ show tag ++ ";" ++ show (map sortOfLNTerm term) ++ "\n"
-    Just (ChainG _ _)                 -> "Chain" ++ ";Nothing;Nothing" ++ "\n"
-    Just (PremiseG _ (Fact tag _ term))  -> "Premise" ++ ";" ++ show tag ++ ";" ++ show (map sortOfLNTerm term) ++ "\n"
-    Just (SplitG i)                   -> "Split" ++ ";" ++ show i ++ ";Nothing\n"
-    Just (DisjG _)                    -> "Disjonction" ++ ";Nothing;Nothing" ++ "\n"
-    Nothing                           -> "Nothing;Nothing;Nothing" ++ "\n"
+fromMaybe :: a -> Maybe a -> a
+fromMaybe x Nothing  = x
+fromMaybe _ (Just y) = y
+
+isUsingInduction :: InductionHint -> Bool
+isUsingInduction UseInduction   = True
+isUsingInduction AvoidInduction = False
+
+vectorizeTraceQuantifier :: SystemTraceQuantifier -> Int
+vectorizeTraceQuantifier ExistsNoTrace    = 0
+vectorizeTraceQuantifier ExistsSomeTrace  = 1
+
+-- Csv format : Age;Usefulness;UseInduction;TraceQuantifier;TypeGoal;TypeFact;TypeTerm;NbSplitDisj;Label
+prettyPrintDataSample :: System -> DataSample -> String
+prettyPrintDataSample sys (DataSample goal age use induction trace) = show age ++ ";" ++ show use ++ ";" ++ show (isUsingInduction induction) ++ ";" ++ show (vectorizeTraceQuantifier trace) ++ ";" ++ case goal of
+    Just (ActionG _ (Fact tag _ term))   -> "Action" ++ ";-1;" ++ show tag ++ ";" ++ show (map sortOfLNTerm term) ++ "\n"
+    Just (ChainG ccl _)                  -> "Chain" ++ ";-1;" ++ show (getFactTag $ nodeConcFact ccl sys) ++ ";" ++ show (map sortOfLNTerm $ getFactTerms $ nodeConcFact ccl sys) ++ "\n"
+    Just (PremiseG _ (Fact tag _ term))  -> "Premise" ++ ";-1;" ++ show tag ++ ";" ++ show (map sortOfLNTerm term) ++ "\n"
+    Just (SplitG i)                      -> "Split" ++ ";" ++ show (fromMaybe (-1) $ splitSize (L.get sEqStore sys) i) ++ ";NaN;NaN\n"
+    Just (DisjG d)                       -> "Disj" ++ ";" ++ show (length $ getDisj d) ++ ";NaN;NaN\n"
+    Nothing                              -> "Nothing;Nothing;Nothing;Nothing\n"
