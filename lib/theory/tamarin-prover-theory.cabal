@@ -60,6 +60,8 @@ library
       , transformers
       , uniplate
       , exceptions
+      , time
+      , binary-instances
 
       , tamarin-prover-utils
       , tamarin-prover-term

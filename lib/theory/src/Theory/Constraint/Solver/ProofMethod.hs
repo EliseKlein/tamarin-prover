@@ -67,6 +67,7 @@ import           Theory.Model
 import           Theory.Text.Pretty
 
 import           System.FileInterract
+import           System.Timing
 
 
 ------------------------------------------------------------------------------
@@ -250,8 +251,8 @@ execProofMethod ctxt method sys =
         Simplify                 -> singleCase simplifySystem
         Induction                -> M.map cleanupSystem <$> execInduction
         Contradiction _
-          | null (contradictions ctxt sys) -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ "\n") Nothing
-          | otherwise                      -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ "\n") (Just M.empty)
+          | null (contradictions ctxt sys) -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ ";Temps : " ++ show timeDiff ++ "\n") Nothing
+          | otherwise                      -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ ";Temps : " ++ show timeDiff ++ "\n") (Just M.empty)
   where
     -- at this point it is safe to remove the free substitution, as all
     -- systems have it fully applied (by the virtue of a call to

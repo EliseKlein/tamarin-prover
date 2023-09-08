@@ -207,6 +207,7 @@ import           Prelude                              hiding (id, (.))
 import           GHC.Generics                         (Generic)
 
 import           Data.Binary
+import           Data.Binary.Instances.Time()
 import qualified Data.ByteString.Char8                as BC
 import qualified Data.DAG.Simple                      as D
 import           Data.List                            (foldl', partition, intersect)
@@ -233,6 +234,9 @@ import           Theory.Constraint.Solver.Heuristics
 import           Theory.Model
 import           Theory.Text.Pretty
 import           Theory.Tools.EquationStore
+
+
+import           Data.Time.Clock
 
 ----------------------------------------------------------------------
 -- ClassifiedRules
@@ -386,6 +390,7 @@ data ProofContext = ProofContext
        , _pcDiffContext        :: Bool -- true if diff proof
        , _pcTrueSubterm        :: Bool -- true if in all rules the RHS is a subterm of the LHS
        , _pcConstantRHS        :: Bool -- true if there are rules with a constant RHS
+       , _pcStartingTime       :: UTCTime -- timestamp when we begin the proof
        }
        deriving( Eq, Ord, Show, Generic, NFData, Binary )
 

@@ -9,10 +9,13 @@
 module System.Timing (
     timed
   , timed_
+  , timeDiff
 ) where
 
 import           Control.Monad
 import           Data.Time.Clock
+
+import 		 System.IO.Unsafe
 
 -- | Execute an IO action and return its result plus the time it took to execute it.
 timed :: IO a -> IO (a, NominalDiffTime)
@@ -25,3 +28,10 @@ timed io = do
 -- | Execute an IO action and return the time it took to execute it.
 timed_ :: IO a -> IO NominalDiffTime
 timed_ = (snd `liftM`) . timed
+
+timeDiff :: NominalDiffTime
+timeDiff = unsafePerformIO $ do
+  t1 <- getCurrentTime
+  t2 <- getCurrentTime
+  return (diffUTCTime t1 t2)
+ 
