@@ -102,6 +102,7 @@ import           Extension.Prelude
 import           Logic.Connectives
 
 import           Theory.Constraint.Solver.Contradictions
+--import           Theory.Constraint.Solver.AnnotatedGoals
 import           Theory.Constraint.System
 import           Theory.Model
 
@@ -555,12 +556,13 @@ substSystem = do
     substSolvedFormulas
     substLemmas
     c2 <- substGoals
+    substRowCSV
     substNextGoalNr
     return (c1 <> c2)
 
 -- no invariants to maintain here
 substEdges, substLessAtoms, substLastAtom, substFormulas,
-  substSolvedFormulas, substLemmas, substNextGoalNr :: Reduction ()
+  substSolvedFormulas, substLemmas, substRowCSV, substNextGoalNr :: Reduction ()
 
 substEdges          = substPart sEdges
 substLessAtoms      = substPart sLessAtoms
@@ -569,7 +571,7 @@ substFormulas       = substPart sFormulas
 substSolvedFormulas = substPart sSolvedFormulas
 substLemmas         = substPart sLemmas
 substNextGoalNr     = return ()
-
+substRowCSV         = return ()
 
 -- | Apply the current substitution of the equation store to a part of the
 -- sequent. This is an internal function.

@@ -18,16 +18,15 @@ module Theory.Constraint.Data (
     dsUsefulness,
     dsUseInduction,
     dsTraceQuantifier
-
   ) where
 
 import           Prelude                              hiding (id, (.))
 
-import           Data.Label                           hiding (get, mkLabels)
+--import           Data.Label                           hiding (get, mkLabels)
 import qualified Data.Label                           as L
 
 import           Theory.Constraint.System.Constraints
-import           Theory.Constraint.Solver.Goals
+import           Theory.Constraint.Solver.AnnotatedGoals
 import           Theory.Constraint.System
 
 import           Theory.Model.Fact
@@ -44,6 +43,7 @@ data DataSample = DataSample
     , _dsUsefulness       :: Maybe Usefulness
     , _dsUseInduction     :: InductionHint
     , _dsTraceQuantifier  :: SystemTraceQuantifier
+
     }
     deriving( Eq, Ord, Show )
 

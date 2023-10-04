@@ -27,9 +27,10 @@ import           Theory.Tools.RuleVariants
 import           Theory.Tools.IntruderRules
 
 import           Term.Positions
-import Theory.Constraint.Solver.Sources (IntegerParameters)
+import           Theory.Constraint.Solver.Sources (IntegerParameters)
 
 
+import           System.Timing
 
 
 
@@ -131,11 +132,15 @@ closeRuleCache parameters restrictions typAsms forcedInjFacts sig protoRules int
         sig classifiedRules injFactInstances RawSource [] AvoidInduction Nothing
         (error "closeRuleCache: trace quantifier should not matter here")
         (error "closeRuleCache: lemma name should not matter here") [] isdiff
-        (all isSubtermRule {-- $ trace (show destr ++ " - " ++ show (map isSubtermRule destr))-} destr) (any isConstantRule destr)
+        (all isSubtermRule {-- $ trace (show destr ++ " - " ++ show (map isSubtermRule destr))-} destr) (any isConstantRule destr) startingTime timeOut
 
     -- inj fact instances
     injFactInstances = forcedInjFacts `S.union`
         simpleInjectiveFactInstances (L.get cprRuleE <$> protoRules)
+
+    startingTime = currentTimeforContext
+    
+    timeOut = timeOutforContext
 
     -- precomputing the case distinctions: we make sure to only add safety
     -- restrictions. Otherwise, it wouldn't be sound to use the precomputed case

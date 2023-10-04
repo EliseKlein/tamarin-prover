@@ -10,12 +10,15 @@ module System.Timing (
     timed
   , timed_
   , timeDiff
+  , currentTimeforContext
+  , timeOutforContext
+  , checkTimeOver
 ) where
 
 import           Control.Monad
 import           Data.Time.Clock
 
-import 		 System.IO.Unsafe
+import           System.IO.Unsafe
 
 -- | Execute an IO action and return its result plus the time it took to execute it.
 timed :: IO a -> IO (a, NominalDiffTime)
@@ -29,9 +32,19 @@ timed io = do
 timed_ :: IO a -> IO NominalDiffTime
 timed_ = (snd `liftM`) . timed
 
-timeDiff :: NominalDiffTime
-timeDiff = unsafePerformIO $ do
-  t1 <- getCurrentTime
-  t2 <- getCurrentTime
-  return (diffUTCTime t1 t2)
- 
+currentTimeforContext :: UTCTime
+currentTimeforContext = unsafePerformIO $ do
+  t <- getCurrentTime
+  return t
+
+timeDiff :: UTCTime -> NominalDiffTime
+timeDiff start = unsafePerformIO $ do
+  t <- getCurrentTime
+  return (diffUTCTime t start)
+  
+-- value of the Time Out in seconds
+timeOutforContext :: NominalDiffTime
+timeOutforContext = 30
+
+checkTimeOver :: NominalDiffTime -> NominalDiffTime -> Bool
+checkTimeOver now to = if now > to then True else False

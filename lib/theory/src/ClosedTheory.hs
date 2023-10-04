@@ -30,6 +30,8 @@ import           Theory.Text.Pretty
 import OpenTheory
 import Pretty
 
+import           System.Timing
+
 ------------------------------------------------------------------------------
 -- Closed theory querying / construction / modification
 ------------------------------------------------------------------------------
@@ -105,6 +107,8 @@ getProofContext l thy = ProofContext
     False
     (all isSubtermRule  $ filter isDestrRule $ intruderRules $ L.get (crcRules . thyCache) thy)
     (any isConstantRule $ filter isDestrRule $ intruderRules $ L.get (crcRules . thyCache) thy)
+    (currentTimeforContext)
+    (timeOutforContext)
   where
     kind    = lemmaSourceKind l
     cases   = case kind of RawSource     -> crcRawSources
@@ -140,6 +144,8 @@ getProofContextDiff s l thy = case s of
             False
             (all isSubtermRule  $ filter isDestrRule $ intruderRules $ L.get (crcRules . diffThyCacheLeft) thy)
             (any isConstantRule $ filter isDestrRule $ intruderRules $ L.get (crcRules . diffThyCacheLeft) thy)
+            (currentTimeforContext)
+            (timeOutforContext)
   RHS -> ProofContext
             ( L.get diffThySignature                    thy)
             ( L.get (crcRules . diffThyCacheRight)           thy)
@@ -154,6 +160,8 @@ getProofContextDiff s l thy = case s of
             False
             (all isSubtermRule  $ filter isDestrRule $ intruderRules $ L.get (crcRules . diffThyCacheRight) thy)
             (any isConstantRule $ filter isDestrRule $ intruderRules $ L.get (crcRules . diffThyCacheRight) thy)
+            (currentTimeforContext)
+            (timeOutforContext)
   where
     kind    = lemmaSourceKind l
     cases   = case kind of RawSource     -> crcRawSources
@@ -204,6 +212,8 @@ getDiffProofContext l thy = DiffProofContext (proofContext LHS) (proofContext RH
             True
             (all isSubtermRule  $ filter isDestrRule $ intruderRules $ L.get (crcRules . diffThyCacheLeft) thy)
             (any isConstantRule $ filter isDestrRule $ intruderRules $ L.get (crcRules . diffThyCacheLeft) thy)
+            (currentTimeforContext)
+            (timeOutforContext)
         RHS -> ProofContext
             ( L.get diffThySignature                    thy)
             ( L.get (crcRules . diffThyDiffCacheRight)           thy)
@@ -218,6 +228,8 @@ getDiffProofContext l thy = DiffProofContext (proofContext LHS) (proofContext RH
             True
             (all isSubtermRule  $ filter isDestrRule $ intruderRules $ L.get (crcRules . diffThyCacheRight) thy)
             (any isConstantRule $ filter isDestrRule $ intruderRules $ L.get (crcRules . diffThyCacheRight) thy)
+            (currentTimeforContext)
+            (timeOutforContext)
 
     specifiedHeuristic = case lattr of
         Just lh -> Just lh

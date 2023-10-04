@@ -61,6 +61,7 @@ import           Theory.Constraint.Solver.Goals
 import           Theory.Constraint.Solver.Reduction
 import           Theory.Constraint.Solver.Simplify
 import           Theory.Constraint.Solver.Heuristics
+import           Theory.Constraint.Solver.AnnotatedGoals
 import           Theory.Constraint.System
 import           Theory.Constraint.Data
 import           Theory.Model
@@ -208,13 +209,13 @@ data DiffProofMethod =
 
   
 instance HasFrees ProofMethod where
-    foldFrees f (SolveGoal g)     = foldFrees f g
-    foldFrees f (Contradiction c) = foldFrees f c
-    foldFrees _ _                 = mempty
+    foldFrees f (SolveGoal g)      = foldFrees f g
+    foldFrees f (Contradiction c)  = foldFrees f c
+    foldFrees _ _                  = mempty
 
     foldFreesOcc  _ _ = const mempty
 
-    mapFrees f (SolveGoal g)     = SolveGoal <$> mapFrees f g
+    mapFrees f (SolveGoal g)     = SolveGoal <$> (mapFrees f g)
     mapFrees f (Contradiction c) = Contradiction <$> mapFrees f c
     mapFrees _ method            = pure method
 
@@ -230,7 +231,6 @@ instance HasFrees DiffProofMethod where
 -- Proof method execution
 -------------------------
 
-
 -- @execMethod rules method se@ checks first if the @method@ is applicable to
 -- the sequent @se@. Then, it applies the @method@ to the sequent under the
 -- assumption that the @rules@ describe all rewriting rules in scope.
@@ -241,22 +241,25 @@ execProofMethod :: ProofContext
                 -> ProofMethod -> System -> Maybe (M.Map CaseName System)
 execProofMethod ctxt method sys =
       case method of
-        Sorry _                  -> return M.empty
+        Sorry _                  -> appendFileWithDirs "./csv/data_test.csv" ("Timer reach;" ++ show method ++ "\n" ++ (L.get sRowCSV sys) ++ "End case timer reach\n") (return M.empty)
         Solved
-          | null (plainOpenGoals sys) -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ "\n") (return M.empty)
-          | otherwise                 -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ "\n") Nothing 
+          | null (plainOpenGoals sys) -> appendFileWithDirs "./csv/data_test.csv" ("Branch complete;" ++ show method ++ "\n" ++ (L.get sRowCSV sys) ++ "End case branch complete\n") (return M.empty)
+          | otherwise                 -> appendFileWithDirs "./csv/data_test.csv" ("Branch complete;" ++ show method ++ "\n" ++ (L.get sRowCSV sys) ++ "End case branch complete\n") Nothing 
         SolveGoal goal
           | goal `M.member` L.get sGoals sys -> execSolveGoal goal
           | otherwise                        -> Nothing
         Simplify                 -> singleCase simplifySystem
         Induction                -> M.map cleanupSystem <$> execInduction
         Contradiction _
-          | null (contradictions ctxt sys) -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ ";Temps : " ++ show timeDiff ++ "\n") Nothing
-          | otherwise                      -> appendFileWithDirs "./csv/data_test.csv" ("Branche finie;" ++ show method ++ ";Temps : " ++ show timeDiff ++ "\n") (Just M.empty)
+          | null (contradictions ctxt sys) -> appendFileWithDirs "./csv/data_test.csv" ("Branche complete;" ++ show method ++ "\n" ++ (L.get sRowCSV sys) ++ "End case branch complete\n") Nothing
+          | otherwise                      -> appendFileWithDirs "./csv/data_test.csv" ("Branche complete;" ++ show method ++ "\n" ++ (L.get sRowCSV sys) ++ "End case branch complete\n") (Just M.empty)
   where
     -- at this point it is safe to remove the free substitution, as all
     -- systems have it fully applied (by the virtue of a call to
     -- simplifySystem). We also reset the variable indices here.
+    
+    --timer = checkTimeOver (timeDiff (L.get pcStartingTime ctxt)) (L.get pcTimeOut ctxt)
+
     cleanupSystem =
          (`Precise.evalFresh` Precise.nothingUsed)
        . renamePrecise
@@ -442,13 +445,13 @@ chosenGoal ranking ctxt sys = case rankGoals ctxt ranking sys $ openGoals sys of
 
 generateDataSample :: GoalRanking -> ProofContext -> System -> DataSample
 generateDataSample ranking ctxt sys =  DataSample
-    typegoal age use induction trace
+    typegoal age use induction traceQ
     where
       (typegoal, (age, use)) = case chosenGoal ranking ctxt sys of
         Nothing -> (Nothing, (-1, Nothing))
         Just (t, (a, u)) -> (Just t, (a, Just u))
       induction = (L.get pcUseInduction ctxt)
-      trace = (L.get pcTraceQuantifier ctxt)
+      traceQ = (L.get pcTraceQuantifier ctxt)
 
 -- | Use a 'GoalRanking' to generate the ranked, list of possible
 -- 'ProofMethod's and their corresponding results in this 'ProofContext' and
@@ -459,19 +462,25 @@ rankProofMethods :: GoalRanking -> ProofContext -> System
 rankProofMethods ranking ctxt sys = do
     -- appendFileWithDirsM "./csv/data_test.csv" (prettyPrintDataSample $ generateDataSample ranking ctxt sys)
     (m, expl) <-
-            (contradiction <$> contradictions ctxt sys)
+            (contradiction <$> contradictions ctxt sys')
         <|> (case L.get pcUseInduction ctxt of
                AvoidInduction -> [(Simplify, ""), (Induction, "")]
                UseInduction   -> [(Induction, ""), (Simplify, "")]
             )
-        <|> appendFileWithDirs "./csv/data_test.csv" (prettyPrintDataSample sys $ generateDataSample ranking ctxt sys) (solveGoalMethod <$> (rankGoals ctxt ranking sys $ openGoals sys))
-    case execProofMethod ctxt m sys of
+        <|> (case timer of
+              False -> appendFileWithDirs "./csv/data_test.csv" (prettyPrintDataSample sys' $ generateDataSample ranking ctxt sys') (solveGoalMethod <$> (rankGoals ctxt ranking sys' $ openGoals sys'))
+              True  -> [(Sorry (Just "time out"), "")]
+            )
+    case execProofMethod ctxt m sys' of
       Just cases -> return (m, (cases, expl))
       Nothing    -> []
   where
+    sys' = L.set sRowCSV ((L.get sRowCSV sys) ++ (prettyPrintDataSample sys $ generateDataSample ranking ctxt sys)) sys
     contradiction c                    = (Contradiction (Just c), "")
 
-    sourceRule goal = case goalRule sys goal of
+    timer = checkTimeOver (timeDiff (L.get pcStartingTime ctxt)) (L.get pcTimeOut ctxt)
+
+    sourceRule goal = case goalRule sys' goal of
         Just ru -> " (from rule " ++ getRuleName ru ++ ")"
         Nothing -> ""
 
