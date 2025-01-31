@@ -229,10 +229,10 @@ enableDiffMaudeSig = maudeSig $ mempty {enableDiff=True}
 prettyMaudeSigExcept :: P.HighlightDocument d => MaudeSig -> S.Set UserDefineSym -> d
 prettyMaudeSigExcept sig excl = P.vcat
     [ ppNonEmptyList' "builtins:"  P.text      builtIns
-    , ppNonEmptyList' "functions:" ppFunSymb $ (S.toList (S.map (\fct -> (NoEqUser fct)) (stFunSyms sig S.\\ exclNoEq)) ++ S.toList (S.map (\fct -> (ACfctUser fct)) (stACFunSyms sig S.\\ exclAC)))
+    , ppNonEmptyList' "functions:" ppFunSymb $ (S.toList (S.map (\fct -> (NoEqUser fct)) (stFunSyms sig S.\\ exclNoEq)) ++ S.toList (S.map (\fct -> (ACfctUser fct)) (stACFunSyms sig S.\\ exclAC)) ++ [ACfctUser (BC.pack "xorr", (Public,Constructor)), NoEqUser (BC.pack "zeroo", (0,Public,Constructor))])
     , ppNonEmptyList
         (\ds -> P.sep (P.keyword_ "equations:" : map (P.nest 2) ds))
-        prettyCtxtStRule $ S.toList (stRules sig)
+        prettyCtxtStRule $ (S.toList (stRules sig) ++ [CtxtStRule (FAPP (AC (ACfct (BC.pack "xorr", (Public,Constructor)))) [LIT (Var (LVar "x"  LSortMsg   0)),LIT (Var (LVar "x"  LSortMsg   0)),LIT (Var (LVar "y"  LSortMsg   0))]) (StRhs [[2]] (LIT (Var (LVar "y"  LSortMsg   0)))), CtxtStRule (FAPP (AC (ACfct (BC.pack "xorr", (Public,Constructor)))) [LIT (Var (LVar "x"  LSortMsg   0)),LIT (Var (LVar "x"  LSortMsg   0))]) (StRhs [[1],[0]] (FAPP (NoEq (BC.pack "zeroo", (0,Public,Constructor))) [])), CtxtStRule (FAPP (AC (ACfct (BC.pack "xorr", (Public,Constructor)))) [LIT (Var (LVar "x"  LSortMsg   0)),FAPP (NoEq (BC.pack "zeroo", (0,Public,Constructor))) []]) (StRhs [[0]] (LIT (Var (LVar "x"  LSortMsg   0))))])
     ]
   where
     ppNonEmptyList' name     = ppNonEmptyList ((P.keyword_ name P.<->) . P.fsep)
@@ -250,17 +250,17 @@ prettyMaudeSigExcept sig excl = P.vcat
     ppFunSymb (NoEqUser (f,(k,priv,constr))) = P.text $ BC.unpack f ++ "/" ++ show k
                                              ++ showAttrNoEq (priv,constr)
       where
-            showAttrNoEq (Public,Destructor) = "[destructor]"
-            showAttrNoEq (Private,Destructor) = "[private,destructor]"
-            showAttrNoEq (Private,Constructor) = "[private]"
+            showAttrNoEq (Public,Destructor) = " [destructor]"
+            showAttrNoEq (Private,Destructor) = " [private,destructor]"
+            showAttrNoEq (Private,Constructor) = " [private]"
             showAttrNoEq (Public,Constructor) = ""
 
     ppFunSymb (ACfctUser (f,(priv,constr))) = P.text $ BC.unpack f ++ "/2" ++ showAttrAC (priv,constr)
       where
-            showAttrAC (Public,Destructor) = "[destructor,AC]"
-            showAttrAC (Private,Destructor) = "[private,destructor,AC]"
-            showAttrAC (Private,Constructor) = "[private,AC]"
-            showAttrAC (Public,Constructor) = "[AC]"
+            showAttrAC (Public,Destructor) = " [destructor,AC]"
+            showAttrAC (Private,Destructor) = " [private,destructor,AC]"
+            showAttrAC (Private,Constructor) = " [private,AC]"
+            showAttrAC (Public,Constructor) = " [AC]"
 
 
     exclNoEq = S.fromList [ o | NoEqUser o <- S.toList excl ]

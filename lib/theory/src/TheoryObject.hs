@@ -731,47 +731,47 @@ prettyTranslationElement (ProcessDefItem p) =
     (text "=")
     <->
     nest 2 (prettyProcess $ L.get pBody p)
-prettyTranslationElement (FunctionTypingInfo (NoEqUser (fsn,(_,priv,_)), intypes, outtype)) =
-    (text "function:")
-    <->
-    text (unpack fsn)
-    <->
-    parens (fsep $ punctuate comma $ map printType intypes)
-    <->
-    text ":"
-    <->
-    printType outtype
-    <->
-    text (showPriv priv)
-    where
-        printType = maybe (text defaultSapicTypeS) text
-        showPriv Private = " [private]"
-        showPriv Public  = ""
-prettyTranslationElement (FunctionTypingInfo (ACfctUser (fsn,(priv,_)), intypes, outtype)) =
-    (text "function:")
-    <->
-    text (unpack fsn)
-    <->
-    parens (fsep $ punctuate comma $ map printType intypes)
-    <->
-    text ":"
-    <->
-    printType outtype
-    <->
-    text "  [AC]"
-    <->
-    text (showPriv priv)
-    where
-        printType = maybe (text defaultSapicTypeS) text
-        showPriv Private = " [private]"
-        showPriv Public  = ""
+prettyTranslationElement (FunctionTypingInfo (NoEqUser (fsn,(_,priv,_)), intypes, outtype)) = text ""
+    -- (text "function:")
+    -- <->
+    -- text (unpack fsn)
+    -- <->
+    -- parens (fsep $ punctuate comma $ map printType intypes)
+    -- <->
+    -- text ":"
+    -- <->
+    -- printType outtype
+    -- <->
+    -- text (showPriv priv)
+    -- where
+    --     printType = maybe (text defaultSapicTypeS) text
+    --     showPriv Private = " [private]"
+    --     showPriv Public  = ""
+prettyTranslationElement (FunctionTypingInfo (ACfctUser (fsn,(priv,_)), intypes, outtype)) = text ""
+    -- (text "function:")
+    -- <->
+    -- text (unpack fsn)
+    -- <->
+    -- parens (fsep $ punctuate comma $ map printType intypes)
+    -- <->
+    -- text ":"
+    -- <->
+    -- printType outtype
+    -- <->
+    -- text "  [AC]"
+    -- <->
+    -- text (showPriv priv)
+    -- where
+    --     printType = maybe (text defaultSapicTypeS) text
+    --     showPriv Private = " [private]"
+    --     showPriv Public  = ""
 prettyTranslationElement (ExportInfoItem eInfo) =
     (text "export: ")
     <->
     text (L.get eTag eInfo)
     <->
     nest 2 (doubleQuotes $ text $ L.get eText eInfo)
-prettyTranslationElement (SignatureBuiltin s) = (text "builtin ")<->(text s)
+prettyTranslationElement (SignatureBuiltin s) = text "" -- (text "builtin ")<->(text s)
 
 prettyPredicate :: HighlightDocument d => Predicate -> d
 prettyPredicate p = kwPredicate <> colon <-> text (factstr ++ "<=>" ++ formulastr)

@@ -717,7 +717,7 @@ prettyEitherRule (_, p) = prettyProtoRuleE $ L.get oprRuleE p
 -- | Pretty print an open theory.
 prettyOpenTheory :: HighlightDocument d => OpenTheory -> d
 prettyOpenTheory thy =
-    prettyTheory (prettySignaturePureExcept funsyms)
+    prettyTheory (prettySignaturePureExcept S.empty)
                  (const emptyDoc) prettyOpenProtoRule prettyProof prettyTranslationElement thy
                  -- prettyIntrVariantsSection prettyOpenProtoRule prettyProof
                  where

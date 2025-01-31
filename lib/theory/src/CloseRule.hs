@@ -218,9 +218,8 @@ derivationTest sig intrR fact terms = checkProof tabProof || checkProof tabProof
 
     emptyThy = Theory "checkReduction" "checkReduction" [] [] (toSignaturePure sig) intrR [] (Option False False False False False False False False False S.empty [] 10 5) False
 
-    --tabProof = concatMap (\_ -> [TraceFound]) provenTheory
+
     tabProof = concatMap checkProofStatuses provenTheory
-    --provenTheory = closedTheory 
     provenTheory = map (proveTheory (const True) defaultProver) closedTheory
     closedTheory = map (\t -> closeTheoryWithMaude sig t False False) modifiedTheory -- no AutoSources
     modifiedTheory = zipWith (\s t -> (addRules (newRules s) . addLemmas (newLemmas s) . addRestrictions [newRestriction0,newRestriction1]) t) setD (repeat emptyThy)
@@ -234,7 +233,6 @@ derivationTest sig intrR fact terms = checkProof tabProof || checkProof tabProof
     tabTheory [] = ""
 
     -- trace ("\ntheory : \n" ++ tabTheory modifiedTheory) 
-    -- trace ("\nterms for deduction : " ++ show s1 ++ "\nfact : " ++ show fact)
 
     newRules s = [OpenProtoRule (Rule (ProtoRuleEInfo (StandRule "0") [] []) (pre s) (co s) (a s) []) []]
     varD s = frees $ concatMap factTerms s

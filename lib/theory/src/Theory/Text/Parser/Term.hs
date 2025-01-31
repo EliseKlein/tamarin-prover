@@ -33,6 +33,10 @@ import           Theory.Text.Parser.Token
 import           Data.ByteString.Internal        (unpackChars)
 import Data.Functor (($>))
 
+import qualified Data.ByteString as B
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as BC
+
 
 -- | Parse a lit with logical variables parsed by @varp@
 vlit :: Parser v -> Parser (NTerm v)
@@ -173,7 +177,7 @@ xorterm :: Ord l => Bool -> Parser (Term l) -> Parser (Term l)
 xorterm eqn plit = do
     xor <- enableXor . sig <$> getState
     if xor && not eqn-- if xor is not enabled, do not accept 'xorterms's
-        then chainl1 (multterm eqn plit) ((\a b -> fAppAC Xor [a,b]) <$ opXor)
+        then chainl1 (multterm eqn plit) ((\a b -> fAppACfct (BC.pack "xorr", (Public,Constructor)) [a,b]) <$ opXor)
         else multterm eqn plit
 
 -- | A left-associative sequence of multiset unions.

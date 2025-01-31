@@ -100,6 +100,9 @@ import           GHC.Records (HasField(getField))
 import           GHC.Num (integerFromInt)
 
 import           Debug.Trace
+
+import           Theory.Text.Pretty (render)
+import           System.FileInterract
 ------------------------------------------------------------------------------
 -- Theory loading: shared between interactive and batch mode
 ------------------------------------------------------------------------------
@@ -345,7 +348,8 @@ loadTheory :: Monad m => TheoryLoadOptions -> String -> FilePath -> ExceptT Theo
 loadTheory thyOpts input inFile = do
     thy <- withExceptT ParserError $ liftEither $ unwrapError $ bimap parse parse thyParser
     traceM ("[Theory " ++ theoryName thy ++ "] Theory loaded")
-    return $ addParamsOptions thyOpts thy
+    traceM ("infix2prefix : \n"++render (prettyThy thy))
+    appendFileWithDirs ("i2p/"++ theoryName thy ++ ".spthy") (render (prettyThy thy)) (return $ addParamsOptions thyOpts thy)
   where
     thyParser | isDiffMode = Right $ diffTheory $ Just inFile
               | otherwise  = Left  $ theory     $ Just inFile
@@ -359,6 +363,7 @@ loadTheory thyOpts input inFile = do
     unwrapError (Right (Left e)) = Left e
     unwrapError (Right (Right v)) = Right $ Right v
     theoryName = either (L.get thyName) (L.get diffThyName)
+    prettyThy = either prettyOpenTheory prettyOpenDiffTheory
 
 -- | Process an open theory based on the specified output module.
 processOpenTheory :: MonadCatch m => TheoryLoadOptions -> OpenTheory -> m OpenTheory

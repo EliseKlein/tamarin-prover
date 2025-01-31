@@ -48,10 +48,6 @@ import Data.Label.Mono (Lens)
 import Theory.Sapic
 import qualified Data.Functor
 
---import Debug.Trace
-
-
-
  -- Describes the mapping between Maude Signatures and the builtin Name
 builtinsDiffNames :: [(String,
                        MaudeSig)]
@@ -173,7 +169,7 @@ equations =
         rrule <- RRule <$> term llitNoPub True <*> (equalSign *> term llitNoPub True)
         case rRuleToCtxtStRule rrule of
           Just str ->
-              modifyStateSig (addCtxtStRule str)
+             modifyStateSig (addCtxtStRule str)
           Nothing  ->
               fail $ "Not a correct equation: " ++ show rrule
 

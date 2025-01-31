@@ -58,6 +58,8 @@ library
       , exceptions
       , graphviz
       , text
+      , directory
+      , filepath
 
     hs-source-dirs: src
 
@@ -86,6 +88,7 @@ library
         Logic.Connectives
 
         System.Timing
+        System.FileInterract
 
         Debug.Trace.Ignore
         Debug.Trace.EnvTracer
