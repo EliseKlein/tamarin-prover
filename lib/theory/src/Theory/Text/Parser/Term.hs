@@ -177,7 +177,7 @@ xorterm :: Ord l => Bool -> Parser (Term l) -> Parser (Term l)
 xorterm eqn plit = do
     xor <- enableXor . sig <$> getState
     if xor && not eqn-- if xor is not enabled, do not accept 'xorterms's
-        then chainl1 (multterm eqn plit) ((\a b -> fAppACfct (BC.pack "xorr", (Public,Constructor)) [a,b]) <$ opXor)
+        then chainl1 (multterm eqn plit) ((\a b -> fAppAC Xor [a,b]) <$ opXor)
         else multterm eqn plit
 
 -- | A left-associative sequence of multiset unions.
@@ -185,7 +185,7 @@ msetterm :: Ord l => Bool -> Parser (Term l) -> Parser (Term l)
 msetterm eqn plit = do
     mset <- enableMSet . sig <$> getState
     if mset && not eqn-- if multiset is not enabled, do not accept 'msetterms's
-        then chainl1 (natterm eqn plit) ((\a b -> fAppAC Union [a,b]) <$ opUnion)
+        then chainl1 (natterm eqn plit) ((\a b -> fAppACfct (BC.pack "add", (Public,Constructor)) [a,b]) <$ opUnion)
         else natterm eqn plit
 
 -- | A left-associative sequence of natural numbers.
