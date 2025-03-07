@@ -229,10 +229,10 @@ enableDiffMaudeSig = maudeSig $ mempty {enableDiff=True}
 prettyMaudeSigExcept :: P.HighlightDocument d => MaudeSig -> S.Set UserDefineSym -> d
 prettyMaudeSigExcept sig excl = P.vcat
     [ ppNonEmptyList' "builtins:"  P.text      builtIns
-    , ppNonEmptyList' "functions:" ppFunSymb $ (S.toList (S.map (\fct -> (NoEqUser fct)) (stFunSyms sig S.\\ exclNoEq)) ++ S.toList (S.map (\fct -> (ACfctUser fct)) (stACFunSyms sig S.\\ exclAC)) ++ [ACfctUser (BC.pack "add", (Public,Constructor))])
+    , ppNonEmptyList' "functions:" ppFunSymb $ (S.toList (S.map (\fct -> (NoEqUser fct)) (stFunSyms sig S.\\ exclNoEq)) ++ S.toList (S.map (\fct -> (ACfctUser fct)) (stACFunSyms sig S.\\ exclAC)) ++ [ACfctUser (BC.pack "add", (Public,Constructor)), NoEqUser (BC.pack "unionUD", (1,Public,Destructor))])
     , ppNonEmptyList
         (\ds -> P.sep (P.keyword_ "equations:" : map (P.nest 2) ds))
-        prettyCtxtStRule $ (S.toList (stRules sig))
+        prettyCtxtStRule $ (S.toList (stRules sig) ++ [CtxtStRule (FAPP (NoEq (BC.pack "unionUD", (1,Public,Destructor))) [FAPP (AC (ACfct (BC.pack "add", (Public,Constructor)))) [LIT (Var (LVar "x"  LSortMsg   0)),LIT (Var (LVar "y"  LSortMsg   0))]]) (StRhs [[1,0]] (LIT (Var (LVar "x"  LSortMsg   0))))])
     ]
   where
     ppNonEmptyList' name     = ppNonEmptyList ((P.keyword_ name P.<->) . P.fsep)
