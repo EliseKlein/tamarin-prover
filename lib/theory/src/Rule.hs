@@ -30,7 +30,9 @@ import           Term.Positions
 import           Term.Macro
 import Theory.Constraint.Solver.Sources (IntegerParameters)
 
-
+import           Data.ByteString (ByteString)
+ 
+import qualified Data.ByteString.Char8 as BC
 
 
 
@@ -97,9 +99,17 @@ closeProtoRule hnd []     (OpenProtoRule ruE [])   = [ClosedProtoRule ruE (varia
 closeProtoRule hnd macros (OpenProtoRule ruE [])   = [ClosedProtoRule ruE (variantsProtoRule hnd (applyMacroInRule macros ruE))]
 closeProtoRule _   _      (OpenProtoRule ruE ruAC) = map (ClosedProtoRule ruE) ruAC
 
+
+builtInDestrRule :: [ByteString]
+builtInDestrRule = map (BC.append (BC.pack "_")) symBI
+  where
+    symBI = [expSymString, invSymString, unionSymString, xorSymString, pmultSymString, emapSymString, fstSymString, sndSymString]
+
+
 -- | Close an intruder rule; i.e., compute maximum number of consecutive applications and variants
 --   Should be parallelized like the variant computation for protocol rules (JD)
 closeIntrRule :: MaudeHandle -> IntrRuleAC -> [IntrRuleAC]
+closeIntrRule _ ir@(Rule (DestrRule name _ _ _) _ _ _ _) | any (`BC.isSuffixOf`name) builtInDestrRule = [ir]
 closeIntrRule hnd (Rule (DestrRule name (-1) subterm constant) prems@((Fact KDFact _ [t]):_) concs@[Fact KDFact _ [rhs]] acts nvs) =
   if subterm then [ru] else variantsIntruder hnd id False ru
     where
