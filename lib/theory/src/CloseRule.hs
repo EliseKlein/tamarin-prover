@@ -291,7 +291,7 @@ constrNameFunc :: ByteString -> ByteString
 constrNameFunc name = case supprPos (name_decompose name) of
   [s1] -> s1
   s1:sq -> BC.intercalate (BC.pack "_") (s1:sq)
-  [] -> error "Destructor Boundedness Check: This case should not happen, please report it on the github page"
+  [] -> error "No Deconstruction Chain Check: This case should not happen, please report it on the github page"
 
   where
     name_decompose = tail . BC.split '_'
@@ -320,13 +320,13 @@ checkChainReduction sig intrR r@(Rule (DestrRule name0 i _ _) ((Fact KDFact _ _)
     -- ppPair (x, y) = render (prettyIntrRuleAC x) ++ " \n " ++ render (prettyIntrRuleAC y)
 
     getPremsFactKD (Rule _ (fact:_) _ _ _) = fact
-    getPremsFactKD _ = error "Destructor Boundedness Check: This case should not happen, please report it on the github page" 
+    getPremsFactKD _ = error "No Deconstruction Chain Check: This case should not happen, please report it on the github page" 
 
     getPremsFactTail (Rule _ ((Fact KDFact _ _):tls) _ _ _) = tls
-    getPremsFactTail _ = error "Destructor Boundedness Check: This case should not happen, please report it on the github page" 
+    getPremsFactTail _ = error "No Deconstruction Chain Check: This case should not happen, please report it on the github page" 
 
     getConcFact (Rule _ _ [fact] _ _) = fact
-    getConcFact _ = error "Destructor Boundedness Check: This case should not happen, please report it on the github page" 
+    getConcFact _ = error "No Deconstruction Chain Check: This case should not happen, please report it on the github page" 
 
     f1 = getPremsFactKD inst1
 
@@ -387,9 +387,9 @@ checkChainReduction sig intrR r@(Rule (DestrRule name0 i _ _) ((Fact KDFact _ _)
           boundToOne rr = rr
 
           aux (fa@(Fact KUFact _ [f]):q) = (dedNaive f termsT || derivationTest sig intrRmodified fa terms) && aux q
-          aux ((Fact KDFact _ _):_) = error "Destructor Boundedness Check: This case should not happen, please report it on the github page" 
+          aux ((Fact KDFact _ _):_) = error "No Deconstruction Chain Check Check: This case should not happen, please report it on the github page" 
           aux []                    = True
-          aux _                     = error "Destructor Boundedness Check: This case should not happen, please report it on the github page" 
+          aux _                     = error "No Deconstruction Chain Check Check: This case should not happen, please report it on the github page" 
 
 
 
@@ -430,10 +430,10 @@ closeIntrRule _   ir                                        = [ir]
 
 prettyChainReduction :: SignatureWithMaude -> String -> OpenRuleCache -> [[IntrRuleAC]] -> Bool -> [IntrRuleAC]
 prettyChainReduction s name o t b = unsafePerformIO $ do
-  traceM ("[Theory " ++ name ++ "] Destructor Boundedness checks started")
+  traceM ("[Theory " ++ name ++ "] No Deconstruction Chain checks started")
   rule <- evaluate . force $ applyChainReduction s o t b
   traceM ("Result : " ++ render (prettyOpenRuleCacheWithLimit rule))
-  traceM ("[Theory " ++ name ++ "] Destructor Boundedness checks ended")
+  traceM ("[Theory " ++ name ++ "] No Deconstruction Chain checks ended")
   return rule
 
 -- | Close a rule cache. Hower, note that the
