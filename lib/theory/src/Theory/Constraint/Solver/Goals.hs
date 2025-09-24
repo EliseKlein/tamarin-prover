@@ -222,20 +222,20 @@ solveAction rules (i, fa@(Fact _ ann _)) = do
     mayRu <- M.lookup i <$> getM sNodes
     showRuleCaseName <$> case mayRu of
         Nothing -> case fa of
-            (Fact KUFact _ [m@(viewTerm2 -> FXor ts)]) -> do
-                   partitions <- disjunctionOfList $ twoPartitions ts
-                   case partitions of
-                       (_, []) -> do
-                            let ru = Rule (IntrInfo CoerceRule) [kdFact m] [fa] [fa] []
-                            modM sNodes (M.insert i ru)
-                            insertGoal (PremiseG (i, PremIdx 0) (kdFact m)) False
-                            return ru
-                       (a',  b') -> do
-                            let a = fAppAC Xor a'
-                            let b = fAppAC Xor b'
-                            let ru = Rule (IntrInfo (ConstrRule $ BC.pack "_xor")) [(kuFact a),(kuFact b)] [fa] [fa] []
-                            modM sNodes (M.insert i ru)
-                            mapM_ requiresKU [a, b] *> return ru
+            -- (Fact KUFact _ [m@(viewTerm2 -> FXor ts)]) -> do
+            --        partitions <- disjunctionOfList $ twoPartitions ts
+            --        case partitions of
+            --            (_, []) -> do
+            --                 let ru = Rule (IntrInfo CoerceRule) [kdFact m] [fa] [fa] []
+            --                 modM sNodes (M.insert i ru)
+            --                 insertGoal (PremiseG (i, PremIdx 0) (kdFact m)) False
+            --                 return ru
+            --            (a',  b') -> do
+            --                 let a = fAppAC Xor a'
+            --                 let b = fAppAC Xor b'
+            --                 let ru = Rule (IntrInfo (ConstrRule $ BC.pack "_xor")) [(kuFact a),(kuFact b)] [fa] [fa] []
+            --                 modM sNodes (M.insert i ru)
+            --                 mapM_ requiresKU [a, b] *> return ru
             _                                        -> do
                    ru  <- labelNodeId i (annotatePrems <$> rules) Nothing
                    act <- disjunctionOfList $ get rActs ru
